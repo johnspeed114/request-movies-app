@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import MoviesList from './components/MoviesList';
 import './App.css';
@@ -9,9 +9,11 @@ function App() {
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  //REMEMBER 'Try' is for await while 'catch' is used with catch
 
-  async function fetchMoviesHandler() {
+  //REMEMBER 'Try' is for await while 'catch' is used with then without async
+  //fyi forgot that arrow functions don't hoist so can use function before its called
+  //[important] no need for usecallback since the items don't change unless we call manuel click the button(also no dependencies showing at all)
+  const fetchMoviesHandler = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -46,7 +48,15 @@ function App() {
       setError(error.message);
     }
     setIsLoading(false);
-  }
+  }, []);
+
+  useEffect(() => {
+    fetchMoviesHandler();
+    //[IMPORTANT] Best practice to list all the states  in the effect to the dependencies array, but functions no good since each time component rerenders function object reference value changes
+    //causing an infinite loop
+    //We just want to check if the fetchMovies has changed, only if changed, not at the start of the render like with an empty dependency
+    //Solution: useCallBack method to check the cached function it's same not the ref value
+  }, [fetchMoviesHandler]);
   //First write the logic of function
   let content = <p>No Movies Found XD</p>;
   if (movies.length > 0) {
